@@ -9,11 +9,14 @@ public class CSPInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
         throws Exception {
-        response.setHeader("Content-Security-Policy", 
-            "default-src * 'self'; " +
-            "img-src * 'self' data:; " +
-            "script-src  * 'self' 'unsafe-eval' 'unsafe-inline'; " +
-            "style-src   * 'self' 'unsafe-inline';");
+        response.setHeader("Content-Security-Policy",
+                "default-src 'self'; " +
+                        "img-src 'self' data:; " +
+                        "script-src 'self'; " +
+                        "style-src 'self' 'unsafe-inline'; " +
+                        "object-src 'none'; " +
+                        "frame-ancestors 'self'; " +
+                        "base-uri 'self';");
         return true;
     }
     
