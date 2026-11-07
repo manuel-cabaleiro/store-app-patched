@@ -34,8 +34,6 @@ public class UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    private static final String SALT = "$2a$10$MN0gK0ldpCgN9jx6r0VYQO";
-
     @Autowired
     ConfigurationParameters configurationParameters;
 
@@ -65,8 +63,8 @@ public class UserService {
         if (!userRepository.existsUser(email)) {
             throw exceptionGenerationUtils.toAuthenticationException(Constants.AUTH_INVALID_USER_MESSAGE, email);
         }
-        User user = userRepository.findByEmailAndPassword(email, BCrypt.hashpw(clearPassword, SALT));
-        if (user == null) {
+        User user = userRepository.findByEmail(email);
+        if (user == null || !BCrypt.checkpw(clearPassword, user.getPassword())) {
             throw exceptionGenerationUtils.toAuthenticationException(Constants.AUTH_INVALID_PASSWORD_MESSAGE, email);
         }
         return user;
@@ -129,7 +127,7 @@ public class UserService {
             throw exceptionGenerationUtils.toDuplicatedResourceException(Constants.EMAIL_FIELD, email,
                     Constants.DUPLICATED_INSTANCE_MESSAGE);
         }
-        User user = userRepository.create(new User(name, email, BCrypt.hashpw(password, SALT), address, image));
+        User user = userRepository.create(new User(name, email, BCrypt.hashpw(password, BCrypt.gensalt()), address, image));
         saveProfileImage(user.getUserId(), image, imageContents);
         return user;
     }
@@ -166,11 +164,11 @@ public class UserService {
             throw exceptionGenerationUtils.toAuthenticationException(
                     Constants.AUTH_INVALID_USER_MESSAGE, id.toString());
         }
-        if (userRepository.findByEmailAndPassword(user.getEmail(), BCrypt.hashpw(oldPassword, SALT)) == null) {
+        if (!BCrypt.checkpw(oldPassword, user.getPassword())) {
             throw exceptionGenerationUtils.toAuthenticationException(Constants.AUTH_INVALID_PASSWORD_MESSAGE,
                     id.toString());
         }
-        user.setPassword(BCrypt.hashpw(password, SALT));
+        user.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
         return userRepository.update(user);
     }
 
@@ -183,7 +181,7 @@ public class UserService {
         if (user.getResetPasswordToken() == null || !user.getResetPasswordToken().equals(token)) {
             throw exceptionGenerationUtils.toAuthenticationException(Constants.AUTH_INVALID_TOKEN_MESSAGE, email);
         }
-        user.setPassword(BCrypt.hashpw(password, SALT));
+        user.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
         user.setResetPasswordToken(null);
         return userRepository.update(user);
     }
