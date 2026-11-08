@@ -56,10 +56,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
             .addPathPatterns(Constants.COMMENT_PRODUCT_ENDPOINT);
     }
     
-    @Override
+    /*@Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler(Constants.EXTERNAL_RESOURCES)
                 .addResourceLocations(new File(configurationParameters.getResources()).toURI().toString());
-    }
+    }*/
 
 }
