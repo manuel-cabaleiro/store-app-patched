@@ -65,7 +65,9 @@ public class OrderController {
                                  Model model, 
                                  Locale locale) {
         try {
-            model.addAttribute(Constants.ORDER, orderService.findById(id));
+            if(user.equals(orderService.findById(id).getUser())){
+                model.addAttribute(Constants.ORDER, orderService.findById(id));
+            }
         } catch (InstanceNotFoundException ex) {
             return errorHandlingUtils.handleInstanceNotFoundException(ex, model, locale);
         }
