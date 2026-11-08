@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Base64;
 import java.util.Locale;
+import java.util.Set;
+
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -47,6 +49,13 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
+    private static final Set<String> allowedPaths = Set.of(
+            Constants.USER_PROFILE_ENDPOINT,
+            Constants.CHANGE_PASSWORD_ENDPOINT,
+            Constants.USER_PROFILE_IMAGE_ENDPOINT,
+            Constants.ORDERS_ENDPOINT
+    );
 
     @Autowired
     private MessageSource messageSource;
@@ -154,10 +163,11 @@ public class UserController {
             return errorHandlingUtils.handleAuthenticationException(ex, loginForm.getEmail(), 
                     Constants.LOGIN_PAGE, model, locale);
         }
-        if (next != null && next.trim().length() > 0) {
-            return Constants.SEND_REDIRECT + next;
+        String dest = Constants.ROOT_ENDPOINT;
+        if (next != null && allowedPaths.contains(next)) {
+            dest = next;
         }
-        return Constants.SEND_REDIRECT + Constants.ROOT_ENDPOINT;
+        return Constants.SEND_REDIRECT + dest;
     }
 
     @PostMapping(Constants.REGISTRATION_ENDPOINT)

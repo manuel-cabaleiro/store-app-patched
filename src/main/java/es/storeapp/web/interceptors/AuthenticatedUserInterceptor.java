@@ -17,7 +17,7 @@ public class AuthenticatedUserInterceptor implements HandlerInterceptor {
         HttpSession session = request.getSession();
         if(session.getAttribute(Constants.USER_SESSION) == null) {
             response.sendRedirect(request.getContextPath() + Constants.LOGIN_ENDPOINT +
-                    Constants.PARAMS + Constants.NEXT_PAGE + Constants.PARAM_VALUE + request.getRequestURL());
+                    Constants.PARAMS + Constants.NEXT_PAGE + Constants.PARAM_VALUE + request.getRequestURI());
             return false;
         }
         return true;
