@@ -65,7 +65,7 @@
                             <img th:unless="${#strings.isEmpty(comment.user.image)}" 
                                  th:src="@{/resources/{user}/{image}(user=${comment.user.userId},image=${comment.user.image})}" 
                                  width="24" height="24"/> 
-                            <span class="font-weight-bold" th:utext="${comment.user.name}"></span>
+                            <span class="font-weight-bold" th:text="${comment.user.name}"></span>
                         </div>
                         <div class="ui-helper-margin-top">
                             <input type="text" class="rating-loading" th:value="${comment.rating}"/>
@@ -76,7 +76,7 @@
                             </span>
                         </div>
                         <div class="ui-helper-margin-top ui-helper-margin-bottom">
-                            <span th:utext="${comment.text}">
+                            <span th:text="${comment.text}">
                             </span>
                         </div>
                     </div>      
