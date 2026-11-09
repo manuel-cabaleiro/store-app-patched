@@ -15,8 +15,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.compress.utils.IOUtils;
@@ -28,6 +32,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+
+import javax.imageio.ImageIO;
+
+import static org.springframework.util.StringUtils.hasText;
 
 @Service
 public class UserService {
@@ -47,6 +57,9 @@ public class UserService {
     ExceptionGenerationUtils exceptionGenerationUtils;
 
     private File resourcesDir;
+
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("png", "jpg", "jpeg", "gif");
+
 
     @PostConstruct
     public void init() {
@@ -122,13 +135,20 @@ public class UserService {
 
     @Transactional
     public User create(String name, String email, String password, String address,
-            String image, byte[] imageContents) throws DuplicatedResourceException {
+            String image, byte[] imageContents) throws DuplicatedResourceException, ServiceException {
         if (userRepository.findByEmail(email) != null) {
             throw exceptionGenerationUtils.toDuplicatedResourceException(Constants.EMAIL_FIELD, email,
                     Constants.DUPLICATED_INSTANCE_MESSAGE);
         }
-        User user = userRepository.create(new User(name, email, BCrypt.hashpw(password, BCrypt.gensalt()), address, image));
-        saveProfileImage(user.getUserId(), image, imageContents);
+        // Se crea sin imagen: el nombre del cliente no debe llegar a la BD
+        User user = userRepository.create(new User(name, email,
+                BCrypt.hashpw(password, BCrypt.gensalt()), address, null));
+
+        String savedImage = saveProfileImage(user.getUserId(), image, imageContents);
+        if (savedImage != null) {
+            user.setImage(savedImage);
+            user = userRepository.update(user);
+        }
         return user;
     }
 
@@ -144,14 +164,14 @@ public class UserService {
         user.setName(name);
         user.setEmail(email);
         user.setAddress(address);
-        if (image != null && image.trim().length() > 0 && imageContents != null) {
+        if (hasText(image) && imageContents != null) {
+            String savedImage = saveProfileImage(id, image, imageContents);
             try {
                 deleteProfileImage(id, user.getImage());
-            } catch (Exception ex) {
+            } catch (IOException ex) {
                 logger.error(ex.getMessage(), ex);
             }
-            saveProfileImage(id, image, imageContents);
-            user.setImage(image);
+            user.setImage(savedImage);
         }
         return userRepository.update(user);
     }
@@ -210,36 +230,68 @@ public class UserService {
         }
     }
 
-    private void saveProfileImage(Long id, String image, byte[] imageContents) {
-        if (image != null && image.trim().length() > 0 && imageContents != null) {
-            File userDir = new File(resourcesDir, id.toString());
-            userDir.mkdirs();
-            File profilePicture = new File(userDir, image);
-            try (FileOutputStream outputStream = new FileOutputStream(profilePicture);) {
-                IOUtils.copy(new ByteArrayInputStream(imageContents), outputStream);
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
+    private String saveProfileImage(Long id, String originalName, byte[] imageContents)
+            throws ServiceException {
+        if (!hasText(originalName) || imageContents == null) {
+            return null;
+        }
+
+        // Del nombre del cliente solo se usa la extensión, y solo si está en la lista blanca
+        String extension = StringUtils.getFilenameExtension(originalName);
+        if (extension == null || !ALLOWED_EXTENSIONS.contains(extension.toLowerCase(Locale.ROOT))) {
+            throw new ServiceException("Formato de imagen no permitido");
+        }
+        extension = extension.toLowerCase(Locale.ROOT);
+        try {
+            // Comprobar que el contenido es realmente una imagen
+            if (ImageIO.read(new ByteArrayInputStream(imageContents)) == null) {
+                throw new ServiceException("El fichero no es una imagen válida");
             }
+
+            String fileName = UUID.randomUUID() + "." + extension;
+            Path target = resolveUserFile(id, fileName);
+            Files.createDirectories(target.getParent());
+            Files.write(target, imageContents, StandardOpenOption.CREATE_NEW);
+            return fileName;
+        } catch (IOException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw new ServiceException("No se pudo guardar la imagen");
         }
     }
 
     private void deleteProfileImage(Long id, String image) throws IOException {
-        if (image != null && image.trim().length() > 0) {
-            File userDir = new File(resourcesDir, id.toString());
-            File profilePicture = new File(userDir, image);
-            Files.delete(profilePicture.toPath());
+        if (hasText(image)) {
+            Files.deleteIfExists(resolveUserFile(id, image));
         }
     }
 
     private byte[] getProfileImage(Long id, String image) throws IOException {
-        if (image != null && image.trim().length() > 0) {
-            File userDir = new File(resourcesDir, id.toString());
-            File profilePicture = new File(userDir, image);
-            try (FileInputStream input = new FileInputStream(profilePicture)) {
-                return IOUtils.toByteArray(input);
-            }
+        if (hasText(image)) {
+            return Files.readAllBytes(resolveUserFile(id, image));
         }
         return null;
+    }
+
+
+    /**
+     * Construye la ruta de un fichero dentro de la carpeta del usuario y
+     * garantiza que, una vez resuelta, no sale de ella.
+     */
+    private Path resolveUserFile(Long id, String fileName) throws IOException {
+        Path baseDir = Paths.get(resourcesDir.toString()).toAbsolutePath().normalize();
+        Path userDir = baseDir.resolve(id.toString()).normalize();
+        Path target = userDir.resolve(fileName).normalize();
+
+        if (!userDir.startsWith(baseDir)
+                || !target.startsWith(userDir)
+                || target.equals(userDir)) {
+            throw new IOException("Ruta de fichero no válida");
+        }
+        return target;
+    }
+
+    private static boolean hasText(String value) {
+        return value != null && !value.trim().isEmpty();
     }
 
 }
