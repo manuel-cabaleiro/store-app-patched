@@ -3,11 +3,8 @@ package es.storeapp.web.config;
 import es.storeapp.business.services.UserService;
 import es.storeapp.common.ConfigurationParameters;
 import es.storeapp.common.Constants;
-import es.storeapp.web.interceptors.AuthenticatedUserInterceptor;
-import es.storeapp.web.interceptors.AutoLoginInterceptor;
-import es.storeapp.web.interceptors.CSPInterceptor;
-import es.storeapp.web.interceptors.LoggerInterceptor;
-import es.storeapp.web.interceptors.ShoppingCartInterceptor;
+import es.storeapp.web.interceptors.*;
+
 import java.io.File;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -54,6 +51,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
             .addPathPatterns(Constants.USER_PROFILE_ALL_ENDPOINTS)
             .addPathPatterns(Constants.CHANGE_PASSWORD_ENDPOINT)
             .addPathPatterns(Constants.COMMENT_PRODUCT_ENDPOINT);
+
+        /*Intercepto CSRF*/
+        registry.addInterceptor(new CsrfInterceptor());
     }
     
     /*@Override

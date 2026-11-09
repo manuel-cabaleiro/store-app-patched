@@ -28,6 +28,7 @@
                      <div th:replace="layout/Messages :: #messages-fragment"></div>
 
                      <form th:object="${loginForm}" class="form-horizontal toggle-disabled" method="POST">
+                        <input type="hidden" name="_csrf" th:value="${session.csrfToken}"/>
                         <div class="form-group row">
                            <label for="email" class="d-none d-sm-block col-sm-3 text-right input-label-middle"
                                   th:utext="#{profile.input.email}"></label>

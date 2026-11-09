@@ -40,6 +40,7 @@
                                 <form method="POST" th:action="@{/products/{id}/addToCart(id=${product.productId})}"
                                       th:if="${!session['shoppingCart'].contains(product.productId)}"
                                       class="d-inline">
+                                    <input type="hidden" name="_csrf" th:value="${session.csrfToken}"/>
                                     <button class="btn btn-sm btn-success" type="submit">
                                         <i class="fa fa-shopping-cart"></i>&nbsp;
                                         <span th:utext="#{product.add.to.cart}"></span>

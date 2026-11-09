@@ -38,6 +38,7 @@
 
                      <form th:object="${paymentForm}" class="form-horizontal" method="POST" 
                            th:action="@{/orders/{id}/pay(id=${order.orderId})}">
+                        <input type="hidden" name="_csrf" th:value="${session.csrfToken}"/>
                         <div class="form-group row" th:if="${session['user'].card != null}">
                            <div class="d-none d-sm-block col-sm-4"></div>
                            <div class="input-group col-12 col-sm-8">

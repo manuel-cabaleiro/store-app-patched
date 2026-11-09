@@ -94,6 +94,7 @@
                         </td>
                         <td class="align-middle">
                            <form method="POST" th:action="@{/products/{id}/removeFromCart(id=${product.productId})}">
+                              <input type="hidden" name="_csrf" th:value="${session.csrfToken}"/>
                               <button class="btn btn-sm btn-danger remove-product-button" type="button">
                                  <i class="fa fa-trash"></i>&nbsp;
                               </button>

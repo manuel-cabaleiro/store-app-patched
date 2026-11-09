@@ -27,6 +27,7 @@
                      <div th:replace="layout/Messages :: #messages-fragment"></div>
 
                      <form th:object="${commentForm}" class="form-horizontal" method="POST">
+                        <input type="hidden" name="_csrf" th:value="${session.csrfToken}"/>
                         <input type="hidden" th:field="*{productId}"/>
                         <div class="form-group row">
                            <label for="name" class="col-3 text-right input-label-middle-rating" 

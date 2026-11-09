@@ -38,6 +38,7 @@
 
                      <form th:object="${userProfileForm}" class="form-horizontal" method="POST" 
                            enctype="multipart/form-data">
+                        <input type="hidden" name="_csrf" th:value="${session.csrfToken}"/>
                         <div class="form-group row">
                            <label for="name" class="col-3 text-right input-label-middle"
                                   th:utext="#{profile.input.name}"></label>
@@ -181,7 +182,7 @@
                            </div>
                         </div>
                      </form>
-                     <form method="POST" action="/profile/image/remove" id="remove-image-form"></form>
+                     <form method="POST" action="/profile/image/remove" id="remove-image-form"><input type="hidden" name="_csrf" th:value="${session.csrfToken}"/></form>
                   </div>
                </div>
             </div>

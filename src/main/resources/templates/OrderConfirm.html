@@ -53,6 +53,7 @@
                      <form th:object="${orderForm}" class="form-horizontal" method="POST" 
                            th:if="${products.size() >0}"
                            th:action="@{/orders}">
+                        <input type="hidden" name="_csrf" th:value="${session.csrfToken}"/>
                         <input type="hidden" th:field="*{payNow}"/>
                         <input type="hidden" th:field="*{name}"/>
                         <input type="hidden" th:field="*{price}"/>
