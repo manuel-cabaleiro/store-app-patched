@@ -67,9 +67,8 @@ public class OrderController {
                                  Model model, 
                                  Locale locale) {
         try {
-            if(user.getUserId().equals(orderService.findById(id).getUser().getUserId())){
-                model.addAttribute(Constants.ORDER, orderService.findById(id));
-            }
+            model.addAttribute(Constants.ORDER, orderService.findById(id, user.getUserId()));
+
         } catch (InstanceNotFoundException ex) {
             return errorHandlingUtils.handleInstanceNotFoundException(ex, model, locale);
         }
@@ -82,7 +81,7 @@ public class OrderController {
                                    Model model, 
                                    Locale locale) {
         try {
-            model.addAttribute(Constants.ORDER, orderService.findById(id));
+            model.addAttribute(Constants.ORDER, orderService.findById(id, user.getUserId()));
         } catch (InstanceNotFoundException ex) {
             return errorHandlingUtils.handleInstanceNotFoundException(ex, model, locale);
         }
