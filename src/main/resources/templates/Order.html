@@ -8,7 +8,7 @@
       <div th:replace="layout/NavBar :: #navbar-fragment"></div>
       <div th:replace="layout/Modal :: #modal-fragment"></div>
 
-      <script th:inline="javascript">
+      <script th:inline="javascript" th:attr="nonce=${cspNonce}">
          /*<![CDATA[*/
          $(document).ready(function () {
             doCreateRatings(true, 'sd');

@@ -7,7 +7,7 @@
 
       <div th:replace="layout/NavBar :: #navbar-fragment"></div>
 
-      <script>
+      <script th:attr="nonce=${cspNonce}">
          $(document).ready(function () {
             doCreateRatings(true, 'sd');
             $('table').DataTable({});
