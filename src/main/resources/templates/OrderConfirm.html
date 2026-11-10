@@ -55,14 +55,10 @@
                            th:action="@{/orders}">
                         <input type="hidden" name="_csrf" th:value="${session.csrfToken}"/>
                         <input type="hidden" th:field="*{payNow}"/>
-                        <input type="hidden" th:field="*{name}"/>
-                        <input type="hidden" th:field="*{price}"/>
-                        <input th:each="product : ${products}" type="hidden" 
-                               name="products[]" th:value="${product.productId}"/>
                         <div class="form-group row">
-                           <label class="col-4 text-right" th:utext="#{order.total.price}"></label>
+                           <label class="col-4 text-right" th:text="#{order.total.price}"></label>
                            <div class="col-8 text-left">
-                              <span th:utext="${orderForm.price}"></span>&euro;
+                              <span th:text="${totalPrice}"></span>&euro;
                            </div>
                         </div>
                         <div class="form-group row">
