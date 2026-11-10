@@ -45,7 +45,7 @@
                               <label class="form-check-label">
                                  <input type="radio" name="defaultCreditCard" value="true" 
                                         class="radio-off form-check-input" checked>
-                                 <span th:utext="#{payment.default.card} + ' #' + 
+                                 <span th:text="#{payment.default.card} + ' #' +
                                        ${#strings.substring(session['user'].card.card,12,16)}"></span>
                               </label>
                            </div>

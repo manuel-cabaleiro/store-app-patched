@@ -51,13 +51,13 @@
                   <tbody>
                      <tr th:each="order,status  : ${orders}">
                         <td class="align-middle">
-                           <span th:utext="${order.name}" ></span>
+                           <span th:text="${order.name}" ></span>
                         </td>
                         <td class="align-middle">
-                           <span th:utext="${#dates.format(order.timestamp, 'yyyy-MM-dd hh:mm')}" ></span>
+                           <span th:text="${#dates.format(order.timestamp, 'yyyy-MM-dd hh:mm')}" ></span>
                         </td>
                         <td class="align-middle">
-                           <span th:utext="${order.price}"></span><span>&euro;</span>
+                           <span th:text="${order.price}"></span><span>&euro;</span>
                         </td>
                         <td class="align-middle">
                            <span th:if="${order.state.name() == 'CANCELLED'}" th:title="#{order.already.cancelled}" 

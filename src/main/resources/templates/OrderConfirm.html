@@ -134,13 +134,13 @@
                      <tr th:each="product,status  : ${products}">
                         <td class="align-middle"><i class="fas" th:classappend="${product.icon}"></i></td>
                         <td class="align-middle">
-                           <span th:utext="${product.name}" th:title="${product.description}"></span></td>
-                        <td th:utext="${product.description}"></td>
-                        <td class="align-middle" th:utext="${product.category.name}"></td>
+                           <span th:text="${product.name}" th:title="${product.description}"></span></td>
+                        <td th:text="${product.description}"></td>
+                        <td class="align-middle" th:text="${product.category.name}"></td>
                         <td class="align-middle">
                            <input type="text" class="rating-loading" th:value="${product.rating}"/>
                         </td>
-                        <td class="align-middle"><span th:utext="${product.price}"></span><span>&euro;</span></td>
+                        <td class="align-middle"><span th:text="${product.price}"></span><span>&euro;</span></td>
                      </tr>
                   </tbody>
                </table>

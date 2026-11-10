@@ -43,7 +43,7 @@
 
                      <div class="row">
                         <div class="col-12 form-title">
-                           <h2 th:utext="#{order.title} + ' ' + ${order.name}" ></h2>
+                           <h2 th:text="#{order.title} + ' ' + ${order.name}" ></h2>
                         </div>
                      </div>
 
@@ -53,7 +53,7 @@
                      <div class="form-group row">
                         <label class="col-6 text-right" th:utext="#{order.total.price}"></label>
                         <div class="col-6 text-left">
-                           <span th:utext="${order.price}"></span>&euro;
+                           <span th:text="${order.price}"></span>&euro;
                         </div>
                      </div>
 
@@ -67,7 +67,7 @@
                      <div class="form-group row">
                         <label for="address" class="col-6 text-right" th:utext="#{order.address}"></label>
                         <div class="input-group col-6">
-                           <span th:utext="${order.address}"></span>
+                           <span th:text="${order.address}"></span>
                         </div>
                      </div>
                      <div class="form-group row ui-helper-margin-bottom-decrease" 
@@ -122,15 +122,15 @@
                      <tr th:each="orderLine,status  : ${order.orderLines}">
                         <td class="align-middle"><i class="fas" th:classappend="${orderLine.product.icon}"></i></td>
                         <td class="align-middle">
-                           <span th:utext="${orderLine.product.name}" 
+                           <span th:text="${orderLine.product.name}"
                                  th:title="${orderLine.product.description}"></span>
                         </td>
-                        <td th:utext="${orderLine.product.description}"></td>
-                        <td class="align-middle" th:utext="${orderLine.product.category.name}"></td>
+                        <td th:text="${orderLine.product.description}"></td>
+                        <td class="align-middle" th:text="${orderLine.product.category.name}"></td>
                         <td class="align-middle">
                            <input type="text" class="rating-loading" th:value="${orderLine.product.rating}"/>
                         </td>
-                        <td class="align-middle"><span th:utext="${orderLine.price}"></span><span>&euro;</span></td>
+                        <td class="align-middle"><span th:text="${orderLine.price}"></span><span>&euro;</span></td>
                         <td class="align-middle">
                            <form method="GET" th:action="@{/products/{id}(id=${orderLine.product.productId})}">
                               <button class="btn btn-sm btn-success" type="submit">
