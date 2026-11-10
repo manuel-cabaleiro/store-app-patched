@@ -72,7 +72,7 @@ public class OrderService {
     public Order pay(User user, Long orderId, String creditCart, Integer cvv, 
                      Integer expirationMonth, Integer expirationYear, Boolean setAsDefault) 
         throws InstanceNotFoundException, InvalidStateException {
-        Order order = orderRepository.findById(orderId);
+        Order order = findById(orderId, user.getUserId());
         if(order.getState() != OrderState.PENDING) {
             if(logger.isWarnEnabled()) {
                 logger.warn(MessageFormat.format("Trying to pay the order {0}", order));
@@ -95,7 +95,7 @@ public class OrderService {
     @Transactional()
     public Order cancel(User user, Long orderId) 
         throws InstanceNotFoundException, InvalidStateException {
-        Order order = orderRepository.findById(orderId);
+        Order order = findById(orderId, user.getUserId());
         if(order.getState() != OrderState.PENDING) {
             throw exceptionGenerationUtils.toInvalidStateException(Constants.INVALID_STATE_EXCEPTION_MESSAGE);
         }
