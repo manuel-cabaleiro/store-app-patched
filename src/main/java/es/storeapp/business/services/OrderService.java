@@ -51,6 +51,8 @@ public class OrderService {
         order.setAddress(address != null ? address : user.getAddress());
         order.setState(OrderState.PENDING);
         order.setTimestamp(System.currentTimeMillis());
+        order.setPrice(0);
+        orderRepository.create(order);
 
         int totalPrice = 0;
         for (Long productId : products) {
@@ -64,7 +66,7 @@ public class OrderService {
             orderLineRepository.create(orderLine);
         }
         order.setPrice(totalPrice);
-        orderRepository.create(order);
+
         return orderRepository.findById(order.getOrderId());
     }
     
