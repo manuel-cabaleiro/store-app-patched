@@ -7,21 +7,17 @@ import es.storeapp.business.exceptions.InstanceNotFoundException;
 import es.storeapp.business.exceptions.ServiceException;
 import es.storeapp.business.services.UserService;
 import es.storeapp.common.Constants;
-import es.storeapp.web.cookies.UserInfo;
 import es.storeapp.web.exceptions.ErrorHandlingUtils;
 import es.storeapp.web.forms.LoginForm;
 import es.storeapp.web.forms.ChangePasswordForm;
 import es.storeapp.web.forms.ResetPasswordForm;
 import es.storeapp.web.forms.UserProfileForm;
-import java.beans.XMLEncoder;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.Base64;
+import java.time.Duration;
 import java.util.Locale;
 import java.util.Set;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -31,7 +27,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -73,14 +71,10 @@ public class UserController {
     }
 
     @GetMapping(Constants.LOGOUT_ENDPOINT)
-    public String doLogout(HttpSession session, 
-                           HttpServletResponse response,
-                           @CookieValue(value = Constants.PERSISTENT_USER_COOKIE, required = false) String userInfo) {
-        if (userInfo != null) {
-            Cookie userCookie = new Cookie(Constants.PERSISTENT_USER_COOKIE, null);
-            userCookie.setMaxAge(0); // remove
-            response.addCookie(userCookie);
-        }
+    public String doLogout(HttpSession session, HttpServletRequest request, HttpServletResponse response,
+                           @CookieValue(value = Constants.PERSISTENT_USER_COOKIE, required = false) String token) {
+        userService.revokeRememberToken(token);
+        setRememberCookie(request, response, "", 0);
         if (session != null) {
             session.invalidate();
         }
@@ -130,7 +124,9 @@ public class UserController {
                           BindingResult result,
                           @RequestParam(value = Constants.NEXT_PAGE, required = false) String next,
                           HttpSession session,
+                          HttpServletRequest request,
                           HttpServletResponse response,
+                          @CookieValue(value = Constants.PERSISTENT_USER_COOKIE, required = false) String oldToken,
                           Locale locale, 
                           Model model) {
         if (result.hasErrors()) {  
@@ -141,22 +137,17 @@ public class UserController {
         User user;
         try {
             user = userService.login(loginForm.getEmail(), loginForm.getPassword());
+            request.changeSessionId();
             session.setAttribute(Constants.USER_SESSION, user);
             if(logger.isDebugEnabled()) {
                 logger.debug(MessageFormat.format("User {0} logged in", user.getEmail()));
             }
-            if (loginForm.getRememberMe() != null && loginForm.getRememberMe()) {
-                Base64.Encoder encoder = Base64.getEncoder();
-                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-                try (XMLEncoder xmlEncoder = new XMLEncoder(buffer);) {
-                    xmlEncoder.writeObject(new UserInfo(user.getEmail(), user.getPassword()));
-                }
-                Cookie userCookie = new Cookie(Constants.PERSISTENT_USER_COOKIE,
-                        new String(encoder.encode(buffer.toByteArray())));
-                userCookie.setMaxAge(604800); // 1 week
-                userCookie.setHttpOnly(true);
-                response.addCookie(userCookie);
-            }
+            userService.revokeRememberToken(oldToken);
+            String token = Boolean.TRUE.equals(loginForm.getRememberMe())
+                    ? userService.issueRememberToken(user)
+                    : null;
+            setRememberCookie(request, response, token == null ? "" : token,
+                    token == null ? 0 : Constants.REMEMBER_MAX_AGE_SECONDS);
         } catch (AuthenticationException ex) {
             if(logger.isDebugEnabled()) {
                 logger.debug(MessageFormat.format("User {0} not logged in ", loginForm.getEmail()));
@@ -171,11 +162,27 @@ public class UserController {
         return Constants.SEND_REDIRECT + dest;
     }
 
+    private void setRememberCookie(HttpServletRequest request, HttpServletResponse response,
+                                   String token, int maxAge) {
+        String path = request.getContextPath().isEmpty() ? "/" : request.getContextPath();
+        ResponseCookie cookie = ResponseCookie.from(Constants.PERSISTENT_USER_COOKIE, token)
+                .path(path)
+                .httpOnly(true)
+                .secure(request.isSecure())
+                .sameSite("Lax")
+                .maxAge(Duration.ofSeconds(maxAge))
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
     @PostMapping(Constants.REGISTRATION_ENDPOINT)
     public String doRegister(@Valid @ModelAttribute(Constants.USER_PROFILE_FORM) UserProfileForm userProfileForm,
                              BindingResult result,
                              RedirectAttributes redirectAttributes,
                              HttpSession session,
+                             HttpServletRequest request,
+                             HttpServletResponse response,
+                             @CookieValue(value = Constants.PERSISTENT_USER_COOKIE, required = false) String oldToken,
                              Locale locale, 
                              Model model) {
         if (result.hasErrors()) {
@@ -192,6 +199,9 @@ public class UserController {
             if(logger.isDebugEnabled()) {
                 logger.debug(MessageFormat.format("User {0} with name {1} registered", user.getEmail(), user.getName()));
             }
+            userService.revokeRememberToken(oldToken);
+            setRememberCookie(request, response, "", 0);
+            request.changeSessionId();
             session.setAttribute(Constants.USER_SESSION, user);
             redirectAttributes.addFlashAttribute(Constants.SUCCESS_MESSAGE, messageSource.getMessage(
                     Constants.REGISTRATION_SUCCESS_MESSAGE, new Object[]{user.getName()}, locale));

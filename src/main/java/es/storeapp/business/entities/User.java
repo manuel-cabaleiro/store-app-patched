@@ -4,10 +4,7 @@ import es.storeapp.common.Constants;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import jakarta.persistence.AttributeOverride;
-import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -51,14 +48,8 @@ public class User implements Serializable {
     @Column(name = "resetPasswordToken")
     private String resetPasswordToken;
     
-    @Embedded
-    @AttributeOverrides(value = {
-        @AttributeOverride(name = "card", column = @Column(name = "card")),
-        @AttributeOverride(name = "cvv", column = @Column(name = "CVV")),
-        @AttributeOverride(name = "expirationMonth", column = @Column(name = "expirationMonth")),
-        @AttributeOverride(name = "expirationYear", column = @Column(name = "expirationYear"))
-    })
-    private CreditCard card;
+    @Column(name = "card_last_four", length = 4)
+    private String savedCardLastFour;
     
     @Column(name = "image")
     private String image;
@@ -114,12 +105,12 @@ public class User implements Serializable {
         this.image = image;
     }
 
-    public CreditCard getCard() {
-        return card;
+    public String getSavedCardLastFour() {
+        return savedCardLastFour;
     }
 
-    public void setCard(CreditCard card) {
-        this.card = card;
+    public void setSavedCardLastFour(String lastFour) {
+        this.savedCardLastFour = lastFour;
     }
 
     public List<Comment> getComments() {
@@ -140,8 +131,8 @@ public class User implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("User{userId=%s, name=%s, email=%s, password=%s, address=%s, resetPasswordToken=%s, card=%s, image=%s}", 
-            userId, name, email, password, address, resetPasswordToken, card, image);
+        return String.format("User{userId=%s, name=%s, email=%s, password=%s, address=%s, resetPasswordToken=%s, image=%s}",
+            userId, name, email, password, address, resetPasswordToken, image);
     }
 
 }

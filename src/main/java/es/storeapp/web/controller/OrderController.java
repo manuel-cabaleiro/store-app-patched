@@ -1,6 +1,5 @@
 package es.storeapp.web.controller;
 
-import es.storeapp.business.entities.CreditCard;
 import es.storeapp.business.entities.Order;
 import es.storeapp.business.entities.Product;
 import es.storeapp.business.entities.User;
@@ -19,13 +18,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -143,33 +143,24 @@ public class OrderController {
     }
 
     @PostMapping(Constants.ORDER_PAYMENT_ENDPOINT)
-    public String doPayOrder(@Valid @ModelAttribute(Constants.ORDER_FORM) PaymentForm paymentForm,
+    public String doPayOrder(@Valid @ModelAttribute(Constants.PAYMENT_FORM) PaymentForm paymentForm,
                              BindingResult result,
                              @PathVariable() Long id,
                              @SessionAttribute(Constants.USER_SESSION) User user,
-                             HttpSession session, 
                              RedirectAttributes redirectAttributes,
                             Locale locale, 
                             Model model) throws InvalidStateException {
         if (result.hasErrors()) {
-            return errorHandlingUtils.handleInvalidFormError(result, 
-                Constants.PAY_ORDER_INVALID_PARAMS_MESSAGE, model, locale);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
         Order order;
         try {
-            if(paymentForm.getDefaultCreditCard() != null && paymentForm.getDefaultCreditCard()) {
-                CreditCard card = user.getCard();
-                order = orderService.pay(user, id, card.getCard(), card.getCvv(), card.getExpirationMonth(),
-                        card.getExpirationYear(), false);
-            } else {
-                order = orderService.pay(user, id, paymentForm.getCreditCard(), paymentForm.getCvv(),
-                        paymentForm.getExpirationMonth(), paymentForm.getExpirationYear(), paymentForm.getSave());
-                if(paymentForm.getSave() != null && paymentForm.getSave()) {
-                    session.setAttribute(Constants.USER_SESSION, user);
-                }   
-            }
+            order = orderService.pay(user, id, Boolean.TRUE.equals(paymentForm.getDefaultCreditCard()),
+                    paymentForm.getCreditCard(), Boolean.TRUE.equals(paymentForm.getSave()));
         } catch (InstanceNotFoundException ex) {
             return errorHandlingUtils.handleInstanceNotFoundException(ex, model, locale);
+        } catch (InvalidStateException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
         String message = messageSource.getMessage(Constants.ORDER_PAYMENT_COMPLETE_MESSAGE, new Object[0], locale);
         redirectAttributes.addFlashAttribute(Constants.SUCCESS_MESSAGE, message);

@@ -1,6 +1,5 @@
 package es.storeapp.business.services;
 
-import es.storeapp.business.entities.CreditCard;
 import es.storeapp.business.entities.Order;
 import es.storeapp.business.entities.OrderLine;
 import es.storeapp.business.entities.OrderState;
@@ -71,26 +70,24 @@ public class OrderService {
     }
     
     @Transactional()
-    public Order pay(User user, Long orderId, String creditCart, Integer cvv, 
-                     Integer expirationMonth, Integer expirationYear, Boolean setAsDefault) 
+    public Order pay(User user, Long orderId, boolean useSavedCard, String cardNumber, boolean saveCard)
         throws InstanceNotFoundException, InvalidStateException {
         Order order = findById(orderId, user.getUserId());
         if(order.getState() != OrderState.PENDING) {
-            if(logger.isWarnEnabled()) {
-                logger.warn(MessageFormat.format("Trying to pay the order {0}", order));
-            }
+            logger.warn("Trying to pay non-pending order {}", orderId);
             throw exceptionGenerationUtils.toInvalidStateException(Constants.INVALID_STATE_EXCEPTION_MESSAGE);
         }
-        order.setState(OrderState.COMPLETED);
-        if(setAsDefault != null && setAsDefault) {
-            CreditCard card = new CreditCard();
-            card.setCard(creditCart);
-            card.setCvv(cvv);
-            card.setExpirationMonth(expirationMonth);
-            card.setExpirationYear(expirationYear);
-            user.setCard(card);
-            userRepository.update(user);
+        if (useSavedCard ? userRepository.findById(user.getUserId()).getSavedCardLastFour() == null
+                         : cardNumber == null || !cardNumber.matches("[0-9]{13,19}")) {
+            throw exceptionGenerationUtils.toInvalidStateException(Constants.PAY_ORDER_INVALID_PARAMS_MESSAGE);
         }
+        // Payments are simulated in this lab. Only a display label is kept for future purchases.
+        if (!useSavedCard && saveCard) {
+            String lastFour = cardNumber.substring(cardNumber.length() - 4);
+            userRepository.updateSavedCardLastFour(user.getUserId(), lastFour);
+            user.setSavedCardLastFour(lastFour);
+        }
+        order.setState(OrderState.COMPLETED);
         return orderRepository.update(order);
     }
     

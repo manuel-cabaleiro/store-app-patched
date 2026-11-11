@@ -160,6 +160,7 @@ public class Constants {
     public static final String CONTENT_DISPOSITION_HEADER = "Content-Disposition";
     public static final String CONTENT_DISPOSITION_HEADER_VALUE = "attachment; filename={0}-{1}";
     public static final String PERSISTENT_USER_COOKIE = "user-info";
+    public static final int REMEMBER_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
     public static final String URL_FORMAT = "{0}://{1}:{2}{3}{4}";
     public static final String CSRF_TOKEN_SESSION = "csrfToken";
     public static final String CSRF_TOKEN_PARAM = "_csrf";

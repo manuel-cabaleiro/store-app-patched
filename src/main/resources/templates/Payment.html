@@ -39,18 +39,18 @@
                      <form th:object="${paymentForm}" class="form-horizontal" method="POST" 
                            th:action="@{/orders/{id}/pay(id=${order.orderId})}">
                         <input type="hidden" name="_csrf" th:value="${session.csrfToken}"/>
-                        <div class="form-group row" th:if="${session['user'].card != null}">
+                        <div class="form-group row" th:if="${session['user'].savedCardLastFour != null}">
                            <div class="d-none d-sm-block col-sm-4"></div>
                            <div class="input-group col-12 col-sm-8">
                               <label class="form-check-label">
                                  <input type="radio" name="defaultCreditCard" value="true" 
                                         class="radio-off form-check-input" checked>
                                  <span th:text="#{payment.default.card} + ' #' +
-                                       ${#strings.substring(session['user'].card.card,12,16)}"></span>
+                                       ${session['user'].savedCardLastFour}"></span>
                               </label>
                            </div>
                         </div>
-                        <div class="form-group row" th:if="${session['user'].card != null}">
+                        <div class="form-group row" th:if="${session['user'].savedCardLastFour != null}">
                            <div class="d-none d-sm-block col-sm-4"></div>
                            <div class="input-group col-12 col-sm-8">
                               <label class="form-check-label">
@@ -73,7 +73,7 @@
                                      data-validation-error-msg-container="#input-card-error"
                                      data-validation="required creditcard"
                                      th:attr="data-validation-error-msg=#{payment.input.card.validation}"
-                                     th:disabled="${session['user'].card != null}"></input>
+                                     th:disabled="${session['user'].savedCardLastFour != null}"></input>
                            </div>
                         </div>
                         <div class="form-group row d-none">
@@ -90,7 +90,7 @@
                                      data-validation-error-msg-container="#input-cvv-error"
                                      data-validation="cvv"
                                      th:attr="data-validation-error-msg=#{payment.input.cvv.validation}"
-                                     th:disabled="${session['user'].card != null}"></input>
+                                     th:disabled="${session['user'].savedCardLastFour != null}"></input>
                            </div>
                         </div>
                         <div class="form-group row d-none">
@@ -106,7 +106,7 @@
                                       data-inputmask-clearincomplete="true"
                                       data-validation-error-msg-container="#input-expiration-month-error"
                                       th:attr="data-validation-error-msg=#{payment.input.expiration.month.validation}"
-                                      th:disabled="${session['user'].card != null}">
+                                      th:disabled="${session['user'].savedCardLastFour != null}">
                                  <option value=''  th:utext="#{month.select}"></option>
                                  <option value='1' th:utext="#{month.1}">January</option>
                                  <option value='2' th:utext="#{month.2}">February</option>
@@ -135,7 +135,7 @@
                                       th:errorclass="error" data-validation="required"
                                       data-validation-error-msg-container="#input-expiration-year-error"
                                       th:attr="data-validation-error-msg=#{payment.input.expiration.year.validation}"
-                                      th:disabled="${session['user'].card != null}">
+                                      th:disabled="${session['user'].savedCardLastFour != null}">
                                  <option value='' th:utext="#{year.select}"></option>
                                  <option value='2024'>2024</option>
                                  <option value='2025'>2025</option>
@@ -153,7 +153,7 @@
                               <label class="form-check-label input-label-middle">
                                  <input type="checkbox" th:field='*{save}' 
                                         class="credit-card-input form-check-input"
-                                        th:disabled="${session['user'].card != null}">
+                                        th:disabled="${session['user'].savedCardLastFour != null}">
                                  <span th:utext="#{payment.set.as.default.card}"></span>
                               </label>
                            </div>

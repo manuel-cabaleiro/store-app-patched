@@ -40,4 +40,46 @@ public class UserRepository extends AbstractRepository<User> {
             return null;
         }
     }
+
+    public void updateSavedCardLastFour(Long userId, String lastFour) {
+        entityManager.createNativeQuery("UPDATE users SET card_last_four = :lastFour WHERE user_id = :id")
+                .setParameter("lastFour", lastFour)
+                .setParameter("id", userId)
+                .executeUpdate();
+    }
+
+    public User findByRememberToken(String tokenHash, long now) {
+        return (User) entityManager.createNativeQuery(
+                "SELECT * FROM users WHERE remember_token_hash = :hash AND remember_expires_at > :now",
+                User.class)
+                .setParameter("hash", tokenHash)
+                .setParameter("now", now)
+                .getResultStream().findFirst().orElse(null);
+    }
+
+    public boolean saveRememberToken(User user, String tokenHash, long expiresAt) {
+        return entityManager.createNativeQuery(
+                "UPDATE users SET remember_token_hash = :hash, remember_expires_at = :expiry "
+                + "WHERE user_id = :id AND password = :password")
+                .setParameter("hash", tokenHash)
+                .setParameter("expiry", expiresAt)
+                .setParameter("id", user.getUserId())
+                .setParameter("password", user.getPassword())
+                .executeUpdate() == 1;
+    }
+
+    public void revokeRememberToken(String tokenHash) {
+        entityManager.createNativeQuery(
+                "UPDATE users SET remember_token_hash = NULL, remember_expires_at = NULL "
+                + "WHERE remember_token_hash = :hash")
+                .setParameter("hash", tokenHash)
+                .executeUpdate();
+    }
+
+    public void revokeRememberTokensForUser(Long userId) {
+        entityManager.createNativeQuery(
+                "UPDATE users SET remember_token_hash = NULL, remember_expires_at = NULL WHERE user_id = :id")
+                .setParameter("id", userId)
+                .executeUpdate();
+    }
 }

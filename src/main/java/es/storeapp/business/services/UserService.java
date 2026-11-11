@@ -15,6 +15,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Base64;
+import java.util.HexFormat;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -43,6 +49,7 @@ import static org.springframework.util.StringUtils.hasText;
 public class UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     @Autowired
     ConfigurationParameters configurationParameters;
@@ -69,6 +76,42 @@ public class UserService {
     @Transactional(readOnly = true)
     public User findByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    @Transactional
+    public String issueRememberToken(User user) {
+        byte[] bytes = new byte[32];
+        RANDOM.nextBytes(bytes);
+        String token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+        long expiry = System.currentTimeMillis() + Constants.REMEMBER_MAX_AGE_SECONDS * 1000L;
+        return userRepository.saveRememberToken(user, hashRememberToken(token), expiry) ? token : null;
+    }
+
+    @Transactional(readOnly = true)
+    public User findByRememberToken(String token) {
+        return isRememberToken(token)
+                ? userRepository.findByRememberToken(hashRememberToken(token), System.currentTimeMillis())
+                : null;
+    }
+
+    @Transactional
+    public void revokeRememberToken(String token) {
+        if (isRememberToken(token)) {
+            userRepository.revokeRememberToken(hashRememberToken(token));
+        }
+    }
+
+    private static boolean isRememberToken(String token) {
+        return token != null && token.matches("[A-Za-z0-9_-]{43}");
+    }
+
+    private static String hashRememberToken(String token) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                    .digest(token.getBytes(StandardCharsets.US_ASCII)));
+        } catch (NoSuchAlgorithmException ex) {
+            throw new IllegalStateException(ex);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -189,6 +232,7 @@ public class UserService {
                     id.toString());
         }
         user.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
+        userRepository.revokeRememberTokensForUser(user.getUserId());
         return userRepository.update(user);
     }
 
@@ -202,6 +246,7 @@ public class UserService {
             throw exceptionGenerationUtils.toAuthenticationException(Constants.AUTH_INVALID_TOKEN_MESSAGE, email);
         }
         user.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
+        userRepository.revokeRememberTokensForUser(user.getUserId());
         user.setResetPasswordToken(null);
         return userRepository.update(user);
     }
