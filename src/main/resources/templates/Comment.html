@@ -5,13 +5,13 @@
 
    <body>
       <div th:replace="layout/NavBar :: #navbar-fragment"></div>
-
-      <script>
+      <script th:attr="nonce=${cspNonce}">
          $(document).ready(function () {
-             doConfigureFormValidation();
-             doCreateRatings(false, 'sm');
+         doConfigureFormValidation();
+         doCreateRatings(false, 'sm');
          });
-      </script>
+       </script>
+      
       <div class="container register">
 
          <div class="row w-100">
