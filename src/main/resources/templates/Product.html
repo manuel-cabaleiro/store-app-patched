@@ -64,7 +64,7 @@
                         <div class="ui-helper-margin-top">
                             <span th:if="${#strings.isEmpty(comment.user.image)}" class="fas fa-user"></span>
                             <img th:unless="${#strings.isEmpty(comment.user.image)}" 
-                                 th:src="@{/resources/{user}/{image}(user=${comment.user.userId},image=${comment.user.image})}" 
+                                 th:src="@{/users/{id}/image(id=${comment.user.userId})}" 
                                  width="24" height="24"/> 
                             <span class="font-weight-bold" th:text="${comment.user.name}"></span>
                         </div>

@@ -21,7 +21,7 @@
                      <span class="text-muted">
                         <span th:if="${#strings.isEmpty(session['user'].image)}" class="fas fa-user"></span>
                         <img th:unless="${#strings.isEmpty(session['user'].image)}" 
-                             th:src="@{/resources/{user}/{image}(user=${session['user'].userId},image=${session['user'].image})}" 
+                             th:src="@{/users/{id}/image(id=${session['user'].userId})}" 
                              width="24" height="24"/> 
                         <span th:text="${session['user'].name}"></span>
                         (<span th:text="${session['user'].email}"></span>)

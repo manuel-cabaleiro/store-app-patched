@@ -160,7 +160,7 @@
                            <label for="image" class="col-3 text-right" 
                                   th:utext="#{profile.input.current.image}"></label>
                            <div class="input-group col-6">
-                              <img th:src="@{/resources/{user}/{image}(user=${session['user'].userId},image=${session['user'].image})}" 
+                              <img th:src="@{/users/{id}/image(id=${session['user'].userId})}" 
                                    width="30" height="30"/>&nbsp;
                               <a class="btn btn-outline-secondary btn-sm" href="/profile/image">
                                  <i class="fas fa-download"></i>
