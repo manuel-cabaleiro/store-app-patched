@@ -56,7 +56,8 @@ public class OrderController {
         try {
             model.addAttribute(Constants.ORDERS, orderService.findByUserById(user.getUserId()));
         } catch (InstanceNotFoundException ex) {
-            return errorHandlingUtils.handleInstanceNotFoundException(ex, model, locale);
+    throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+
         }
         return Constants.ORDERS_PAGE;
     }
@@ -70,8 +71,8 @@ public class OrderController {
             model.addAttribute(Constants.ORDER, orderService.findById(id, user.getUserId()));
 
         } catch (InstanceNotFoundException ex) {
-            return errorHandlingUtils.handleInstanceNotFoundException(ex, model, locale);
-        }
+    throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+}         
         return Constants.ORDER_PAGE;
     }
 
@@ -83,8 +84,8 @@ public class OrderController {
         try {
             model.addAttribute(Constants.ORDER, orderService.findById(id, user.getUserId()));
         } catch (InstanceNotFoundException ex) {
-            return errorHandlingUtils.handleInstanceNotFoundException(ex, model, locale);
-        }
+    throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+}
         PaymentForm paymentForm = new PaymentForm();
         model.addAttribute(Constants.PAYMENT_FORM, paymentForm);
         return Constants.ORDER_PAYMENT_PAGE;
@@ -129,8 +130,8 @@ public class OrderController {
             order = orderService.create(user, orderName, orderForm.getAddress(),
                     productIds);
         } catch (InstanceNotFoundException ex) {
-            return errorHandlingUtils.handleInstanceNotFoundException(ex, model, locale);
-        }
+    throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+}
         String message = messageSource.getMessage(Constants.ORDER_CREATED_MESSAGE,
                 new Object[]{orderName}, locale);
         redirectAttributes.addFlashAttribute(Constants.SUCCESS_MESSAGE, message);
@@ -158,8 +159,9 @@ public class OrderController {
             order = orderService.pay(user, id, Boolean.TRUE.equals(paymentForm.getDefaultCreditCard()),
                     paymentForm.getCreditCard(), Boolean.TRUE.equals(paymentForm.getSave()));
         } catch (InstanceNotFoundException ex) {
-            return errorHandlingUtils.handleInstanceNotFoundException(ex, model, locale);
-        } catch (InvalidStateException ex) {
+    throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+}
+         catch (InvalidStateException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
         String message = messageSource.getMessage(Constants.ORDER_PAYMENT_COMPLETE_MESSAGE, new Object[0], locale);
@@ -178,8 +180,8 @@ public class OrderController {
         try {
             order = orderService.cancel(user, id);
         } catch (InstanceNotFoundException ex) {
-            return errorHandlingUtils.handleInstanceNotFoundException(ex, model, locale);
-        }
+    throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+}
         String message = messageSource.getMessage(Constants.ORDER_CANCEL_COMPLETE_MESSAGE, new Object[0], locale);
         redirectAttributes.addFlashAttribute(Constants.SUCCESS_MESSAGE, message);
         redirectAttributes.addFlashAttribute(Constants.ORDER, order);
