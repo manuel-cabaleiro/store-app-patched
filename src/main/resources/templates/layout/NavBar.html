@@ -90,11 +90,17 @@
                      </div>                  
                   </li>
                   <li class="nav-item">
-                     <a class="nav-link" href="/logout">
-                        <span class="fas fa-sign-out-alt"></span>
-                        <div th:utext="#{navbar.logout}"></div>
-                     </a>
-                  </li>
+   <form method="POST" th:action="@{/logout}" class="m-0">
+      <input type="hidden"
+             name="_csrf"
+             th:value="${session.csrfToken}"/>
+
+      <button type="submit" class="btn btn-link nav-link">
+         <span class="fas fa-sign-out-alt"></span>
+         <span class="d-block" th:text="#{navbar.logout}"></span>
+      </button>
+   </form>
+</li>
                </ul>
             </div>
          </nav>

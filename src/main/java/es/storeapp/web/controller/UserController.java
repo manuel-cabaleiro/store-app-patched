@@ -69,16 +69,23 @@ public class UserController {
         model.addAttribute(Constants.LOGIN_FORM, new LoginForm());
         return Constants.LOGIN_PAGE;
     }
+    @PostMapping(Constants.LOGOUT_ENDPOINT)
+    public String doLogout(
+        HttpSession session,
+        HttpServletRequest request,
+        HttpServletResponse response,
+        @CookieValue(
+                value = Constants.PERSISTENT_USER_COOKIE,
+                required = false) String token) {
 
-    @GetMapping(Constants.LOGOUT_ENDPOINT)
-    public String doLogout(HttpSession session, HttpServletRequest request, HttpServletResponse response,
-                           @CookieValue(value = Constants.PERSISTENT_USER_COOKIE, required = false) String token) {
-        userService.revokeRememberToken(token);
-        setRememberCookie(request, response, "", 0);
-        if (session != null) {
-            session.invalidate();
-        }
-        return Constants.SEND_REDIRECT + Constants.ROOT_ENDPOINT;
+    userService.revokeRememberToken(token);
+    setRememberCookie(request, response, "", 0);
+
+    if (session != null) {
+        session.invalidate();
+    }
+
+    return Constants.SEND_REDIRECT + Constants.ROOT_ENDPOINT;
     }
 
     @GetMapping(Constants.REGISTRATION_ENDPOINT)
