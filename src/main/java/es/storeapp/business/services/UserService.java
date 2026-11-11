@@ -323,18 +323,30 @@ public class UserService {
      * garantiza que, una vez resuelta, no sale de ella.
      */
     private Path resolveUserFile(Long id, String fileName) throws IOException {
-        Path baseDir = Paths.get(resourcesDir.toString()).toAbsolutePath().normalize();
-        Path userDir = baseDir.resolve(id.toString()).normalize();
-        Path target = userDir.resolve(fileName).normalize();
-
-        if (!userDir.startsWith(baseDir)
-                || !target.startsWith(userDir)
-                || target.equals(userDir)) {
-            throw new IOException("Ruta de fichero no válida");
-        }
-        return target;
+    if (!hasText(fileName)
+            || fileName.contains("/")
+            || fileName.contains("\\")
+            || fileName.equals(".")
+            || fileName.equals("..")) {
+        throw new IOException("Nombre de fichero no válido");
     }
 
+    Path baseDir = resourcesDir.toPath().toRealPath();
+    Path userDir = baseDir.resolve(id.toString()).normalize();
+    Path target = userDir.resolve(fileName).normalize();
+
+    if (!userDir.startsWith(baseDir)
+            || !target.getParent().equals(userDir)) {
+        throw new IOException("Ruta de fichero no válida");
+    }
+
+    if (Files.isSymbolicLink(userDir)
+            || Files.isSymbolicLink(target)) {
+        throw new IOException("No se permiten enlaces simbólicos");
+    }
+
+    return target;
+}
     private static boolean hasText(String value) {
         return value != null && !value.trim().isEmpty();
     }
