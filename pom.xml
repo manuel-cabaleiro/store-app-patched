@@ -225,8 +225,8 @@
                 <configuration>
                     <driver>org.apache.derby.jdbc.EmbeddedDriver</driver>
                     <url>jdbc:derby:work/database;create=true</url>
-                    <username>app</username>
-                    <password>secr3t</password>
+                    <username>${db.username}</username>
+                    <password>${db.password}</password>
                     <autocommit>true</autocommit>
                     <onError>continue</onError>
                     <srcFiles>
