@@ -50,7 +50,7 @@ public class ProductService {
         if (category == null || category.length() == 0) {
             return productRepository.findAll(Constants.PRICE_FIELD);
         } else {
-            return productRepository.findByCategory(category, Constants.PRICE_FIELD);
+            return productRepository.findByCategory(category);
         }
     }
 

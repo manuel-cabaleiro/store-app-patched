@@ -20,8 +20,7 @@ public abstract class AbstractRepository<T> {
     
     private static final String FIND_ALL_QUERY = "SELECT t FROM {0} t";
     private static final String FIND_ALL_ORDERED_QUERY = "SELECT t FROM {0} t ORDER BY t.{1}";
-    private static final String FIND_BY_TEXT_ATTRIBUTE_QUERY = "SELECT t FROM {0} t WHERE t.{1} = ''{2}'' ORDER BY t.{3}";
-    
+      
     private final Class<T> genericType;
 
     @PersistenceContext
@@ -77,10 +76,5 @@ public abstract class AbstractRepository<T> {
         return (List<T>) query.getResultList();
     }
     
-    @SuppressWarnings("unchecked")
-    public List<T> findByStringAttribute(String attribute, String value, String orderColumn) {
-        Query query = entityManager.createQuery(MessageFormat.format(FIND_BY_TEXT_ATTRIBUTE_QUERY, 
-                genericType.getSimpleName(), attribute, value, orderColumn));
-        return (List<T>) query.getResultList();
-    }
+   
 }
