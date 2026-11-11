@@ -23,8 +23,8 @@
                         <img th:unless="${#strings.isEmpty(session['user'].image)}" 
                              th:src="@{/resources/{user}/{image}(user=${session['user'].userId},image=${session['user'].image})}" 
                              width="24" height="24"/> 
-                        <span th:utext="${session['user'].name}"></span>
-                        (<span th:utext="${session['user'].email}"></span>)
+                        <span th:text="${session['user'].name}"></span>
+                        (<span th:text="${session['user'].email}"></span>)
                      </span>
                   </li>
                   
