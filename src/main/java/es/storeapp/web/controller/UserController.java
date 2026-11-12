@@ -42,6 +42,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.SessionAttribute;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import es.storeapp.common.SecurityAuditLogger;
 
 @Controller
 public class UserController {
@@ -60,6 +61,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private SecurityAuditLogger audit;
     
     @Autowired
     ErrorHandlingUtils errorHandlingUtils;
@@ -146,9 +150,7 @@ public class UserController {
             user = userService.login(loginForm.getEmail(), loginForm.getPassword());
             request.changeSessionId();
             session.setAttribute(Constants.USER_SESSION, user);
-            if(logger.isDebugEnabled()) {
-                logger.debug(MessageFormat.format("User {0} logged in", user.getEmail()));
-            }
+            audit.loginSuccess(user.getEmail(), request);
             userService.revokeRememberToken(oldToken);
             String token = Boolean.TRUE.equals(loginForm.getRememberMe())
                     ? userService.issueRememberToken(user)
@@ -156,15 +158,15 @@ public class UserController {
             setRememberCookie(request, response, token == null ? "" : token,
                     token == null ? 0 : Constants.REMEMBER_MAX_AGE_SECONDS);
         } catch (AuthenticationException ex) {
-            if(logger.isDebugEnabled()) {
-                logger.debug(MessageFormat.format("User {0} not logged in ", loginForm.getEmail()));
-            }
-            return errorHandlingUtils.handleAuthenticationException(ex, loginForm.getEmail(), 
+            audit.loginFailure(loginForm.getEmail(), request, ex.getMessage());
+            return errorHandlingUtils.handleAuthenticationException(ex, loginForm.getEmail(),
                     Constants.LOGIN_PAGE, model, locale);
         }
         String dest = Constants.ROOT_ENDPOINT;
         if (next != null && allowedPaths.contains(next)) {
             dest = next;
+        } else if (next != null && !next.isBlank()) {
+            audit.accessDenied(user.getEmail(), "redirect_denied:" + next, request);
         }
         return Constants.SEND_REDIRECT + dest;
     }
