@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import es.storeapp.common.SecurityAuditLogger;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
@@ -20,6 +21,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private SecurityAuditLogger audit;
     
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -46,7 +50,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .excludePathPatterns(Constants.EXTERNAL_RESOURCES);
         
         /* Interceptor to protect authenticated resources */
-        registry.addInterceptor(new AuthenticatedUserInterceptor())
+        registry.addInterceptor(new AuthenticatedUserInterceptor(audit))
             .addPathPatterns(Constants.ORDERS_ALL_ENDPOINTS)
             .addPathPatterns(Constants.USER_PROFILE_ALL_ENDPOINTS)
             .addPathPatterns(Constants.CHANGE_PASSWORD_ENDPOINT)
